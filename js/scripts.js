@@ -1,0 +1,129 @@
+const MISTRAL_API_KEY = "SZeTPWEKl9X0Bi4aRrn763WJEMRZARp2";
+const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+
+const form = document.getElementById("recipe-form");
+const submitBtn = document.getElementById("submit-btn");
+const recipeSection = document.getElementById("recipe-section");
+const recipeCard = document.getElementById("recipe-card");
+const recipeTitle = document.getElementById("recipe-title");
+const recipeMeta = document.getElementById("recipe-meta");
+const metaPrep = document.getElementById("meta-prep");
+const metaCook = document.getElementById("meta-cook");
+const metaDifficulty = document.getElementById("meta-difficulty");
+const ingredientsList = document.getElementById("recipe-ingredients-list");
+const stepsList = document.getElementById("recipe-steps-list");
+const recipeTip = document.getElementById("recipe-tip");
+const newRecipeBtn = document.getElementById("new-recipe-btn");
+const vibeInput = document.getElementById("vibe");
+const vibeBtns = document.querySelectorAll(".vibe-btn");
+
+vibeBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    vibeBtns.forEach((b) => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    vibeInput.value = btn.dataset.vibe;
+  });
+});
+
+vibeBtns[0].classList.add("is-active");
+
+newRecipeBtn.addEventListener("click", () => {
+  recipeSection.classList.remove("is-visible");
+  recipeSection.setAttribute("aria-hidden", "true");
+  form.scrollIntoView({ behavior: "smooth" });
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const ingredients = document.getElementById("ingredients").value.trim();
+  const vibe = vibeInput.value;
+
+  if (!ingredients) return;
+
+  submitBtn.classList.add("is-loading");
+  submitBtn.disabled = true;
+
+  try {
+    const prompt = buildPrompt(ingredients, vibe);
+    const recipe = await callMistral(prompt);
+    displayRecipe(recipe);
+  } catch (err) {
+    recipeCard.innerHTML = `<p class="error-message">❌ Erreur : ${err.message || "Impossible de générer la recette. Réessaie."}</p>`;
+    recipeSection.classList.add("is-visible");
+    recipeSection.setAttribute("aria-hidden", "false");
+  } finally {
+    submitBtn.classList.remove("is-loading");
+    submitBtn.disabled = false;
+  }
+});
+
+function buildPrompt(ingredients, vibe) {
+  return `Tu es un grand chef cuisinier. À partir des ingrédients suivants : "${ingredients}", et avec une ambiance "${vibe}", crée une recette complète et originale.
+
+Réponds UNIQUEMENT avec un objet JSON valide (sans markdown, sans backticks) au format suivant :
+{
+  "title": "Nom de la recette",
+  "prep_time": "temps de préparation",
+  "cook_time": "temps de cuisson",
+  "difficulty": "Facile / Intermédiaire / Difficile",
+  "ingredients": ["ingrédient 1 avec quantité", "ingrédient 2 avec quantité"],
+  "steps": ["étape 1 détaillée", "étape 2 détaillée"],
+  "tip": "une astuce de chef pour réussir ce plat"
+}
+
+Sois créatif, précis et inspirant. La recette doit être réaliste et délicieuse.`;
+}
+
+async function callMistral(prompt) {
+  const response = await fetch(MISTRAL_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${MISTRAL_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "mistral-small-latest",
+      messages: [
+        {
+          role: "system",
+          content: "Tu es un chef cuisinier expert. Tu réponds uniquement en JSON valide, sans markdown.",
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.8,
+      max_tokens: 1500,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`API error (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0].message.content;
+  return JSON.parse(content);
+}
+
+function displayRecipe(recipe) {
+  recipeTitle.textContent = recipe.title;
+  metaPrep.textContent = `⏱️ Préparation : ${recipe.prep_time}`;
+  metaCook.textContent = `🔥 Cuisson : ${recipe.cook_time}`;
+  metaDifficulty.textContent = `📊 Difficulté : ${recipe.difficulty}`;
+
+  ingredientsList.innerHTML = recipe.ingredients
+    .map((ing) => `<li>${ing}</li>`)
+    .join("");
+
+  stepsList.innerHTML = recipe.steps
+    .map((step) => `<li>${step}</li>`)
+    .join("");
+
+  recipeTip.textContent = recipe.tip;
+
+  recipeSection.classList.add("is-visible");
+  recipeSection.setAttribute("aria-hidden", "false");
+  recipeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
