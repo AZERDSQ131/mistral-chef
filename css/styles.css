@@ -170,6 +170,7 @@ h1 span {
 
 .input-wrapper input {
   flex: 1;
+  min-width: 0;
   border: 0;
   background: transparent;
   color: var(--cream);
@@ -182,6 +183,50 @@ h1 span {
 
 .input-wrapper input::placeholder {
   color: rgba(245, 239, 230, 0.25);
+}
+
+.photo-btn {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-right: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--cream-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 200ms ease;
+  position: relative;
+}
+
+.photo-btn:hover {
+  background: rgba(212, 168, 83, 0.1);
+  color: var(--gold-light);
+}
+
+.photo-btn:active {
+  transform: scale(0.92);
+}
+
+.photo-btn.is-loading .photo-icon {
+  display: none;
+}
+
+.photo-btn.is-loading .photo-loader {
+  display: block;
+}
+
+.photo-loader {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(212, 168, 83, 0.25);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
 
 .hint {
