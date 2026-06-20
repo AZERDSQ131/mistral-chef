@@ -27,3 +27,13 @@ Transformez vos ingrédients en recettes uniques grâce à l'intelligence artifi
 ## Lien
 
 **https://soch126.github.io/mistral-chef/**
+
+---
+
+## Mes contributions
+
+| Projet | PR en attente |
+|--------|:------------:|
+| [Mistral Chef](https://github.com/Soch126/mistral-chef) | 1 |
+| [Mistral Vibe](https://github.com/Soch126/mistral-vibe) | 15 |
+| [Claude Code](https://github.com/Soch126/claude-code) | 10 |**
